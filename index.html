@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KELOMPOK KERJA OPS CIHAURBEUTI</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Orbitron:wght@500&display=swap" rel="stylesheet">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- JSPDF & AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .canvas-container {
+            border: 2px dashed #cbd5e1;
+            border-radius: 0.5rem;
+            background: #fff;
+            cursor: crosshair;
+            touch-action: none;
+        }
+        /* Loader Processing (Kecil) */
+        .loader {
+            border-top-color: #3498db;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Intro Loader Styles */
+        .orbitron-font { font-family: 'Orbitron', sans-serif; }
+        .cyber-ring {
+            box-shadow: 0 0 15px #3b82f6, inset 0 0 15px #3b82f6;
+        }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- INTRO LOADER (Futuristic) -->
+    <div id="introLoader" class="fixed inset-0 z-[100] bg-gray-900 flex flex-col items-center justify-center text-white transition-opacity duration-700">
+        <div class="relative w-32 h-32 mb-8">
+             <!-- Ping Ring -->
+             <div class="absolute inset-0 border-2 border-blue-500/30 rounded-full animate-ping"></div>
+             <!-- Outer Ring -->
+             <div class="absolute inset-0 border-4 border-transparent border-t-blue-500 rounded-full animate-spin"></div>
+             <!-- Inner Ring -->
+             <div class="absolute inset-4 border-4 border-transparent border-b-cyan-400 rounded-full animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+             <!-- Center Glow -->
+             <div class="absolute inset-0 m-auto w-4 h-4 bg-blue-500 rounded-full shadow-[0_0_20px_#3b82f6] animate-pulse"></div>
+        </div>
+        <h2 class="text-xl md:text-2xl orbitron-font animate-pulse tracking-widest text-center px-4 text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
+            Antosan Narik Data Heula!...
+        </h2>
+        <p class="mt-2 text-gray-400 text-xs tracking-widest uppercase">System Initializing</p>
+    </div>
+
+    <!-- Processing Overlay (Standard) -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white p-5 rounded-lg flex flex-col items-center">
+            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
+            <p class="font-semibold text-gray-700">Memproses...</p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="max-w-md mx-auto min-h-screen bg-white shadow-xl relative overflow-hidden md:max-w-5xl md:my-8 md:rounded-2xl md:min-h-0 flex flex-col opacity-0 transition-opacity duration-1000" id="mainApp">
+        
+        <!-- Navbar -->
+        <nav class="bg-blue-700 text-white p-4 flex justify-between items-center sticky top-0 z-40">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-users-rectangle text-xl"></i>
+                <h1 class="font-bold text-lg">Absensi KKOS</h1>
+            </div>
+            <div>
+                <button onclick="showView('home')" class="text-white hover:bg-blue-600 px-3 py-1 rounded text-sm mr-2 transition"><i class="fa-solid fa-pen-to-square"></i> Isi Absen</button>
+                <button id="navAdminBtn" onclick="checkAdminSession()" class="bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-bold px-3 py-1 rounded text-sm transition"><i class="fa-solid fa-lock"></i> Admin</button>
+                <button id="navLogoutBtn" onclick="logoutAdmin()" class="hidden bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-1 rounded text-sm transition"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
+            </div>
+        </nav>
+
+        <!-- Container Content -->
+        <div class="flex-grow">
+            <!-- VIEW: Form Absensi (Home) -->
+            <div id="viewHome" class="p-6 transition-all duration-300">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-blue-800">Form Daftar Hadir</h2>
+                    <p class="text-gray-500 text-sm">Kelompok Kerja Operator Sekolah</p>
+                </div>
+
+                <form id="attendanceForm" onsubmit="handleAttendanceSubmit(event)" class="space-y-4 max-w-lg mx-auto">
+                    <!-- Input Nama -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+                        <input type="text" id="inputNama" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Masukkan nama Anda">
+                    </div>
+                    <!-- Input Unit Kerja -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Unit Kerja (Sekolah)</label>
+                        <input type="text" id="inputUnit" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Nama Sekolah">
+                    </div>
+                    <!-- Input NPSN -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">NPSN</label>
+                        <input type="number" id="inputNPSN" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Nomor NPSN">
+                    </div>
+                    <!-- Input Tanggal Rapat -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Rapat</label>
+                        <input type="date" id="inputTanggal" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <!-- Tanda Tangan Canvas -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanda Tangan</label>
+                        <div class="canvas-container relative w-full h-48">
+                            <canvas id="signatureCanvas" class="w-full h-full block"></canvas>
+                            <div class="absolute bottom-2 right-2">
+                                <button type="button" onclick="clearCanvas()" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded">
+                                    <i class="fa-solid fa-eraser"></i> Hapus
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">*Goreskan tanda tangan di dalam kotak</p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-lg shadow-lg transform active:scale-95 transition duration-200">
+                        <i class="fa-solid fa-paper-plane mr-2"></i> Kirim Absensi
+                    </button>
+                </form>
+            </div>
+
+            <!-- VIEW: Login Admin -->
+            <div id="viewLogin" class="hidden p-6 flex flex-col items-center justify-center min-h-[50vh]">
+                <div class="w-full max-w-sm bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <h2 class="text-xl font-bold text-center text-gray-800 mb-4">Login Admin Ops</h2>
+                    <form onsubmit="handleLogin(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Username</label>
+                            <input type="text" id="adminUser" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Password</label>
+                            <input type="password" id="adminPass" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500">
+                        </div>
+                        <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-bold py-2 rounded-md transition">Masuk</button>
+                    </form>
+                    <button onclick="showView('home')" class="mt-4 text-sm text-gray-500 hover:text-blue-600 w-full text-center">Kembali ke Form</button>
+                </div>
+            </div>
+
+            <!-- VIEW: Dashboard Admin -->
+            <div id="viewAdmin" class="hidden p-4 md:p-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Data Kehadiran</h2>
+                        <p class="text-sm text-gray-500">Kelola dan unduh data absensi</p>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                        <input type="date" id="filterTanggal" onchange="fetchData()" class="px-3 py-2 border rounded-lg text-sm">
+                        <button onclick="fetchData()" class="bg-blue-100 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-200 text-sm font-semibold">
+                            <i class="fa-solid fa-rotate"></i> Refresh
+                        </button>
+                        <button onclick="downloadPDF()" class="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 text-sm font-semibold shadow-md">
+                            <i class="fa-solid fa-file-pdf"></i> Unduh PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm bg-white">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-4 py-3">No</th>
+                                <th scope="col" class="px-4 py-3">Waktu Input</th> <!-- Tanggal & Waktu -->
+                                <th scope="col" class="px-4 py-3">Nama</th>
+                                <th scope="col" class="px-4 py-3">Unit Kerja</th>
+                                <th scope="col" class="px-4 py-3">Tanggal Rapat</th>
+                                <th scope="col" class="px-4 py-3">TTD</th>
+                                <th scope="col" class="px-4 py-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                            <tr>
+                                <td colspan="7" class="px-4 py-8 text-center text-gray-400">Silakan pilih tanggal atau klik refresh untuk memuat data.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="p-6 text-center border-t border-gray-100 mt-auto bg-gray-50">
+            <p class="text-sm text-gray-500 font-medium mb-3">app design by @herisheroes 2026</p>
+            <div class="flex justify-center space-x-6">
+                <a href="https://www.youtube.com/@herisheroes" target="_blank" class="text-red-600 hover:text-red-700 text-2xl transition transform hover:scale-110" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                <a href="https://www.tiktok.com/@herisheroes" target="_blank" class="text-black hover:text-gray-800 text-2xl transition transform hover:scale-110" title="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+                <a href="https://www.instagram.com/herisheroes" target="_blank" class="text-pink-600 hover:text-pink-700 text-2xl transition transform hover:scale-110" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg w-full max-w-md p-6 shadow-2xl">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2">Edit Data Peserta</h3>
+            <form id="editForm" onsubmit="handleEditSubmit(event)" class="space-y-3">
+                <input type="hidden" id="editId">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase">Nama Lengkap</label>
+                    <input type="text" id="editNama" class="w-full border p-2 rounded text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase">Unit Kerja</label>
+                    <input type="text" id="editUnit" class="w-full border p-2 rounded text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase">NPSN</label>
+                    <input type="number" id="editNPSN" class="w-full border p-2 rounded text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase">Tanggal Rapat</label>
+                    <input type="date" id="editTanggal" class="w-full border p-2 rounded text-sm">
+                </div>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded text-sm">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // KONFIGURASI
+        const APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuZlC8sl4ZlYvUeBp1cglBWVYiNBHD9M3z-XLbh7rF08IhDmovwQhl6lVfiEwJ7w/exec'; 
+
+        // State
+        let canvas, ctx;
+        let isDrawing = false;
+        let currentDataList = [];
+        
+        // --- INISIALISASI ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initCanvas();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('inputTanggal').value = today;
+            document.getElementById('filterTanggal').value = today;
+
+            // HANDLE INTRO LOADER
+            setTimeout(() => {
+                const loader = document.getElementById('introLoader');
+                const mainApp = document.getElementById('mainApp');
+                
+                loader.classList.add('opacity-0');
+                mainApp.classList.remove('opacity-0');
+                
+                // Hapus loader dari DOM setelah fade out selesai
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 700); 
+            }, 2500); // Tampil selama 2.5 detik
+        });
+
+        // --- CANVAS LOGIC ---
+        function initCanvas() {
+            canvas = document.getElementById('signatureCanvas');
+            ctx = canvas.getContext('2d');
+            function resizeCanvas() {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            canvas.addEventListener('mousedown', startDraw);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', endDraw);
+            canvas.addEventListener('mouseout', endDraw);
+
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault(); 
+                const touch = e.touches[0];
+                canvas.dispatchEvent(new MouseEvent("mousedown", { clientX: touch.clientX, clientY: touch.clientY }));
+            }, {passive: false});
+
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                canvas.dispatchEvent(new MouseEvent("mousemove", { clientX: touch.clientX, clientY: touch.clientY }));
+            }, {passive: false});
+
+            canvas.addEventListener('touchend', (e) => {
+                canvas.dispatchEvent(new MouseEvent("mouseup", {}));
+            });
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        function startDraw(e) {
+            isDrawing = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+
+        function endDraw() { isDrawing = false; }
+        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+        function isCanvasEmpty() {
+            const blank = document.createElement('canvas');
+            blank.width = canvas.width;
+            blank.height = canvas.height;
+            return canvas.toDataURL() === blank.toDataURL();
+        }
+
+        // --- NAVIGASI ---
+        function showView(viewName) {
+            ['viewHome', 'viewLogin', 'viewAdmin'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            if (viewName === 'home') document.getElementById('viewHome').classList.remove('hidden');
+            if (viewName === 'login') document.getElementById('viewLogin').classList.remove('hidden');
+            if (viewName === 'admin') document.getElementById('viewAdmin').classList.remove('hidden');
+        }
+
+        function toggleLoading(show) {
+            const el = document.getElementById('loadingOverlay');
+            show ? el.classList.remove('hidden') : el.classList.add('hidden');
+        }
+
+        // --- SUBMIT ABSENSI ---
+        function handleAttendanceSubmit(e) {
+            e.preventDefault();
+            if (isCanvasEmpty()) {
+                Swal.fire('Error', 'Mohon isi tanda tangan terlebih dahulu.', 'warning');
+                return;
+            }
+            const payload = {
+                action: 'simpan',
+                nama: document.getElementById('inputNama').value,
+                unit: document.getElementById('inputUnit').value,
+                npsn: document.getElementById('inputNPSN').value,
+                tglRapat: document.getElementById('inputTanggal').value,
+                ttd: canvas.toDataURL('image/png')
+            };
+            toggleLoading(true);
+            fetch(APPSCRIPT_URL, {
+                method: 'POST', mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                toggleLoading(false);
+                Swal.fire('Berhasil!', 'Data absensi Anda telah tersimpan.', 'success');
+                e.target.reset(); clearCanvas();
+                document.getElementById('inputTanggal').value = new Date().toISOString().split('T')[0];
+            }).catch(err => {
+                toggleLoading(false);
+                Swal.fire('Gagal', 'Terjadi kesalahan jaringan.', 'error');
+            });
+        }
+
+        // --- ADMIN LOGIN ---
+        function checkAdminSession() {
+            sessionStorage.getItem('isAdmin') === 'true' ? (showView('admin'), document.getElementById('navLogoutBtn').classList.remove('hidden'), document.getElementById('navAdminBtn').classList.add('hidden'), fetchData()) : showView('login');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            if (document.getElementById('adminUser').value === 'admin' && document.getElementById('adminPass').value === 'adminops') {
+                sessionStorage.setItem('isAdmin', 'true');
+                document.getElementById('adminUser').value = ''; document.getElementById('adminPass').value = '';
+                checkAdminSession();
+                Swal.fire({ icon: 'success', title: 'Login Berhasil', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+            } else {
+                Swal.fire('Gagal', 'Username atau Password salah!', 'error');
+            }
+        }
+
+        function logoutAdmin() {
+            sessionStorage.removeItem('isAdmin');
+            document.getElementById('navLogoutBtn').classList.add('hidden');
+            document.getElementById('navAdminBtn').classList.remove('hidden');
+            showView('home');
+        }
+
+        // --- DATA FETCHING ---
+        async function sendRequestToGAS(payload) {
+            const response = await fetch(APPSCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+            return await response.json();
+        }
+
+        async function fetchData() {
+            toggleLoading(true);
+            try {
+                const response = await sendRequestToGAS({ action: 'ambil_data', filterTanggal: document.getElementById('filterTanggal').value });
+                if(response.status === 'success') {
+                    currentDataList = response.data;
+                    renderTable(currentDataList);
+                } else Swal.fire('Error', 'Gagal memuat data: ' + response.message, 'error');
+            } catch (err) { Swal.fire('Error', 'Gagal koneksi ke server.', 'error'); } 
+            finally { toggleLoading(false); }
+        }
+
+        // --- RENDER TABLE UPDATED ---
+        function renderTable(data) {
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Tidak ada data untuk tanggal ini.</td></tr>`;
+                return;
+            }
+
+            data.forEach((row, index) => {
+                // 1. FORMAT TANGGAL RAPAT (Agar tidak muncul format Timestamp)
+                let tglDisplay = '-';
+                if (row.tglRapat) {
+                    try {
+                        let dateObj = new Date(row.tglRapat);
+                        if (!isNaN(dateObj)) {
+                            // Format ke dd/mm/yyyy
+                            const d = dateObj.getDate().toString().padStart(2, '0');
+                            const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                            const y = dateObj.getFullYear();
+                            tglDisplay = `${d}/${m}/${y}`;
+                        } else {
+                            tglDisplay = row.tglRapat; 
+                        }
+                    } catch (e) { tglDisplay = row.tglRapat; }
+                }
+                
+                // 2. FORMAT WAKTU INPUT (UPDATED: Tanggal & Waktu)
+                let waktuInput = '-';
+                if (row.waktu) {
+                    try {
+                        let dateObj = new Date(row.waktu);
+                        if (!isNaN(dateObj)) {
+                            // Format dd/mm/yyyy HH:MM
+                            const d = dateObj.getDate().toString().padStart(2, '0');
+                            const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                            const y = dateObj.getFullYear();
+                            const hh = dateObj.getHours().toString().padStart(2, '0');
+                            const min = dateObj.getMinutes().toString().padStart(2, '0');
+                            waktuInput = `${d}/${m}/${y} ${hh}:${min}`;
+                        } else {
+                            waktuInput = row.waktu;
+                        }
+                    } catch(e) { waktuInput = row.waktu; }
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "bg-white border-b hover:bg-gray-50";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-gray-900">${index + 1}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600 font-mono">${waktuInput}</td>
+                    <td class="px-4 py-3">${row.nama}</td>
+                    <td class="px-4 py-3">${row.unit}</td>
+                    <td class="px-4 py-3">${tglDisplay}</td>
+                    <td class="px-4 py-3">
+                        <img src="${row.ttd}" class="h-8 border border-gray-200 rounded bg-white" alt="TTD">
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <button onclick="openEditModal('${row.id}')" class="text-blue-600 hover:text-blue-900">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- EDIT LOGIC ---
+        function openEditModal(id) {
+            const item = currentDataList.find(d => d.id === id);
+            if (!item) return;
+            document.getElementById('editId').value = item.id;
+            document.getElementById('editNama').value = item.nama;
+            document.getElementById('editUnit').value = item.unit;
+            document.getElementById('editNPSN').value = item.npsn;
+            
+            // Format tanggal untuk input date (YYYY-MM-DD) agar bisa dibaca input type="date"
+            let rawDate = item.tglRapat;
+            let dateValue = '';
+            try {
+                let d = new Date(rawDate);
+                if (!isNaN(d)) {
+                    dateValue = d.toISOString().split('T')[0];
+                } else if(typeof rawDate === 'string' && rawDate.includes('T')) {
+                    dateValue = rawDate.split('T')[0];
+                } else {
+                    dateValue = rawDate;
+                }
+            } catch(e) {}
+            
+            document.getElementById('editTanggal').value = dateValue;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        async function handleEditSubmit(e) {
+            e.preventDefault();
+            document.getElementById('editModal').classList.add('hidden');
+            toggleLoading(true);
+            try {
+                const response = await sendRequestToGAS({
+                    action: 'edit',
+                    id: document.getElementById('editId').value,
+                    nama: document.getElementById('editNama').value,
+                    unit: document.getElementById('editUnit').value,
+                    npsn: document.getElementById('editNPSN').value,
+                    tglRapat: document.getElementById('editTanggal').value // Data tanggal baru
+                });
+                response.status === 'success' ? (Swal.fire('Sukses', 'Data berhasil diperbarui', 'success'), fetchData()) : Swal.fire('Gagal', response.message, 'error');
+            } catch (err) { Swal.fire('Error', 'Terjadi kesalahan saat menyimpan', 'error'); } 
+            finally { toggleLoading(false); }
+        }
+
+        // --- PDF GENERATION ---
+        function downloadPDF() {
+            if (currentDataList.length === 0) { Swal.fire('Info', 'Tidak ada data.', 'info'); return; }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const selectedDateStr = document.getElementById('filterTanggal').value;
+            
+            const dateObj = new Date(selectedDateStr);
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = dateObj.toLocaleDateString('id-ID', options);
+
+            doc.setFontSize(16); doc.setFont("helvetica", "bold");
+            doc.text("DAFTAR HADIR RAPAT", 105, 20, null, null, "center");
+            
+            doc.setFontSize(14);
+            doc.text("KELOMPOK KERJA OPERATOR SEKOLAH (KKOPS)", 105, 27, null, null, "center");
+            doc.text("KECAMATAN CIHAURBEUTI", 105, 34, null, null, "center");
+            
+            doc.setFontSize(11); doc.setFont("helvetica", "normal");
+            doc.text(`Hari, Tanggal: ${formattedDate}`, 14, 44);
+
+            const tableBody = currentDataList.map((row, i) => {
+                 // Format tanggal untuk PDF juga
+                 let tglPDF = row.tglRapat;
+                 try {
+                     let d = new Date(row.tglRapat);
+                     if(!isNaN(d)) tglPDF = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
+                 } catch(e){}
+                 
+                 return [(i + 1).toString(), row.nama, row.unit, row.npsn, ''];
+            });
+
+            doc.autoTable({
+                startY: 50,
+                head: [['No', 'Nama', 'Unit Kerja', 'NPSN', 'Tanda Tangan']],
+                body: tableBody,
+                theme: 'grid',
+                headStyles: { fillColor: [41, 128, 185], halign: 'center' },
+                columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 4: { cellWidth: 30, minCellHeight: 15 } },
+                didDrawCell: function(data) {
+                    if (data.column.index === 4 && data.cell.section === 'body') {
+                        const ttd = currentDataList[data.row.index].ttd;
+                        if (ttd) doc.addImage(ttd, 'PNG', data.cell.x + 2, data.cell.y + 1, (data.cell.height - 2) * 2, data.cell.height - 2);
+                    }
+                },
+                didDrawPage: function (data) {
+                    const pageSize = doc.internal.pageSize;
+                    const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+                    
+                    doc.setFontSize(8);
+                    doc.setFont("helvetica", "italic");
+                    const now = new Date().toLocaleString('id-ID');
+                    doc.text(`KK OPS Kecamatan Cihaurbeuti - Dicetak pada: ${now}`, 14, pageHeight - 10);
+                }
+            });
+
+            let finalY = doc.lastAutoTable.finalY + 20;
+            if (finalY > 250) { doc.addPage(); finalY = 20; }
+            doc.setFontSize(11); doc.setFont("helvetica", "normal");
+            doc.text("Mengetahui,", 140, finalY);
+            doc.text("Ketua OPS", 140, finalY + 6);
+            doc.line(140, finalY + 35, 190, finalY + 35);
+            doc.text("( ..................................... )", 140, finalY + 40);
+
+            doc.save(`Absensi_KKOS_${selectedDateStr}.pdf`);
+        }
+    </script>
+</body>
+</html>

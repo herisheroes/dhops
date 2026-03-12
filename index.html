@@ -512,7 +512,7 @@
     }
 
     // --- FUNGSI GENERATE PDF (jsPDF & AutoTable) ---
-    function generatePDF() {
+    async function generatePDF() {
         if(globalDataCache.length === 0) {
             Swal.fire('Kosong', 'Tidak ada data untuk dicetak.', 'warning');
             return;
@@ -520,6 +520,21 @@
 
         const tanggal = document.getElementById('pdfDate').value || new Date().toLocaleDateString('id-ID');
         
+        // Menyalakan loader sementara proses rendering
+        toggleLoading(true, 'Menyiapkan File PDF...');
+
+        // Fungsi bantuan untuk memuat gambar dari URL sebagai Promise
+        const loadKetuaSignature = (url) => new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = () => resolve(null); // Resolves to null jika gagal (mencegah error)
+            img.src = url;
+        });
+
+        // Mengambil gambar TTD Ketua sebelum render PDF
+        const ketuaImg = await loadKetuaSignature('https://raw.githubusercontent.com/herisheroes/dhops/refs/heads/main/TTDHERIS.png');
+
         // Setup jsPDF (Portrait, mm, A4)
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
@@ -570,8 +585,8 @@
                     const rowIndex = data.row.index;
                     const user = globalDataCache[rowIndex];
                     
-                    // Cek jika ttd ada dan format base64 gambar
-                    if (user.ttd && user.ttd.startsWith('data:image')) {
+                    // Cek jika variabel user ada, ttd tidak kosong, dan berformat string base64 gambar
+                    if (user && user.ttd && typeof user.ttd === 'string' && user.ttd.startsWith('data:image')) {
                         try {
                             // Hitung posisi tengah untuk gambar
                             const imgWidth = 35;
@@ -605,6 +620,16 @@
         doc.text(`Cihaurbeuti, ${tanggal}`, 140, yPosTtd);
         doc.text("Ketua KKG Kelas 6,", 140, yPosTtd + 6);
         
+        // Memasukkan gambar tanda tangan Ketua jika berhasil dimuat dari URL
+        if (ketuaImg) {
+            try {
+                // Koordinat disesuaikan agar pas di atas nama
+                doc.addImage(ketuaImg, 'PNG', 145, yPosTtd + 8, 30, 20);
+            } catch (error) {
+                console.error("Gagal melukis TTD Ketua di PDF", error);
+            }
+        }
+
         // Nama Ketua
         doc.setFont("helvetica", "bold");
         doc.text("Heris Apriadi", 140, yPosTtd + 30);
@@ -614,6 +639,9 @@
 
         // Unduh PDF
         doc.save(`Daftar_Hadir_KKG_${tanggal.replace(/\s+/g, '_')}.pdf`);
+        
+        // Matikan loader
+        toggleLoading(false);
     }
   </script>
 </body>

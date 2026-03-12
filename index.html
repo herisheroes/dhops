@@ -521,7 +521,7 @@
         const tanggal = document.getElementById('pdfDate').value || new Date().toLocaleDateString('id-ID');
         
         // Menyalakan loader sementara proses rendering
-        toggleLoading(true, 'Menyiapkan File PDF...');
+        toggleLoading(true, 'Menyiapkan File PDF (Mengecilkan Ukuran)...');
 
         // Fungsi bantuan untuk memuat gambar dari URL sebagai Promise
         const loadKetuaSignature = (url) => new Promise((resolve) => {
@@ -535,9 +535,14 @@
         // Mengambil gambar TTD Ketua sebelum render PDF
         const ketuaImg = await loadKetuaSignature('https://raw.githubusercontent.com/herisheroes/dhops/refs/heads/main/TTDHERIS.png');
 
-        // Setup jsPDF (Portrait, mm, A4)
+        // Setup jsPDF (Portrait, mm, A4) DENGAN COMPRESS GLOBAL DIAKTIFKAN
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
+        const doc = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4',
+            compress: true // KOMPRESI TINGKAT TINGGI
+        });
         
         // --- HEADER KOP SURAT ---
         doc.setFontSize(14);
@@ -594,7 +599,8 @@
                             const xPos = data.cell.x + (data.cell.width - imgWidth) / 2;
                             const yPos = data.cell.y + (data.cell.height - imgHeight) / 2;
                             
-                            doc.addImage(user.ttd, 'PNG', xPos, yPos, imgWidth, imgHeight);
+                            // MENAMBAHKAN KOMPRESI 'FAST' PADA GAMBAR
+                            doc.addImage(user.ttd, 'PNG', xPos, yPos, imgWidth, imgHeight, 'sig_' + rowIndex, 'FAST');
                         } catch(e) { console.error("Gagal meload TTD baris " + rowIndex); }
                     } else {
                         // Jika tidak ada TTD digital, kasih nomor urut titik-titik untuk TTD manual
@@ -623,8 +629,8 @@
         // Memasukkan gambar tanda tangan Ketua jika berhasil dimuat dari URL
         if (ketuaImg) {
             try {
-                // Koordinat disesuaikan agar pas di atas nama
-                doc.addImage(ketuaImg, 'PNG', 145, yPosTtd + 8, 30, 20);
+                // Koordinat disesuaikan agar pas di atas nama, DENGAN KOMPRESI 'FAST'
+                doc.addImage(ketuaImg, 'PNG', 145, yPosTtd + 8, 30, 20, 'ttd_ketua', 'FAST');
             } catch (error) {
                 console.error("Gagal melukis TTD Ketua di PDF", error);
             }

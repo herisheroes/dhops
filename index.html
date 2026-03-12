@@ -11,6 +11,9 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- Signature Pad -->
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+  <!-- jsPDF & AutoTable untuk Cetak PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
@@ -20,30 +23,39 @@
     @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     
     .signature-wrapper { position: relative; width: 100%; height: 200px; border: 2px dashed #cbd5e1; border-radius: 0.5rem; background: #fff; }
-    /* Penting: touch-action none agar tidak scroll saat tanda tangan di HP */
     canvas { width: 100%; height: 100%; display: block; touch-action: none; }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center py-10 px-4">
 
-  <!-- Header -->
-  <div class="max-w-3xl w-full bg-white rounded-xl shadow-lg overflow-hidden mb-6 border-t-4 border-blue-600">
+  <!-- Header dengan Tombol Admin -->
+  <div class="max-w-4xl w-full flex justify-end mb-2">
+    <button onclick="loginAdmin()" class="text-sm font-bold text-gray-500 hover:text-blue-600 flex items-center gap-1 transition">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+      Admin
+    </button>
+  </div>
+
+  <div class="max-w-4xl w-full bg-white rounded-xl shadow-lg overflow-hidden mb-6 border-t-4 border-blue-600">
     <div class="p-6 text-center bg-blue-50">
       <h1 class="text-2xl font-bold text-gray-800">DATA ANGGOTA KKG KELAS 6</h1>
       <p class="text-blue-600 font-medium">Kecamatan Cihaurbeuti - Kab. Ciamis</p>
     </div>
   </div>
 
-  <!-- Form Container -->
-  <div class="max-w-3xl w-full bg-white rounded-xl shadow-lg p-6 relative">
-    
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/80 z-50 flex items-center justify-center rounded-xl">
-      <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="hidden fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center">
+    <div class="bg-white p-6 rounded-xl flex flex-col items-center shadow-2xl">
+      <div class="loader ease-linear rounded-full border-4 border-t-4 border-blue-200 border-t-blue-600 h-12 w-12 mb-4"></div>
+      <p class="text-gray-700 font-semibold" id="loadingText">Memproses Data...</p>
     </div>
+  </div>
 
+  <!-- ==================== AREA UTAMA (USER) ==================== -->
+  <div id="mainArea" class="max-w-4xl w-full bg-white rounded-xl shadow-lg p-6 relative transition-all">
+    
     <!-- Step 1: PENCARIAN -->
-    <div id="stepSearch" class="transition-all duration-300">
+    <div id="stepSearch">
       <div class="mb-4">
         <label class="block text-gray-700 text-sm font-bold mb-2">Masukkan NIP / NUPTK / NIK</label>
         <div class="flex gap-2">
@@ -58,6 +70,11 @@
 
     <!-- Step 2: FORMULIR INPUT/EDIT -->
     <div id="stepForm" class="hidden mt-6 border-t pt-6">
+      <div class="flex justify-between items-center mb-4">
+         <h2 class="text-xl font-bold text-gray-800">Formulir Data Anggota</h2>
+         <button type="button" onclick="cancelForm()" class="text-sm text-red-500 hover:text-red-700 font-semibold hidden" id="btnCancelAdmin">Batal & Kembali ke Admin</button>
+      </div>
+      
       <div id="statusMessage" class="hidden mb-6 p-4 rounded-lg"></div>
 
       <form id="memberForm" onsubmit="event.preventDefault(); saveData();">
@@ -79,48 +96,35 @@
           <label class="block text-gray-700 text-sm font-bold mb-2">Nama Sekolah</label>
           <select id="inputSekolah" required class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
             <option value="" disabled selected>-- Pilih Sekolah --</option>
-            <!-- Daftar Sekolah di Kec. Cihaurbeuti (UPDATED) -->
             <option value="SDN 1 Cihaurbeuti">SDN 1 Cihaurbeuti</option>
             <option value="SDN 2 Cihaurbeuti">SDN 2 Cihaurbeuti</option>
             <option value="SDN 3 Cihaurbeuti">SDN 3 Cihaurbeuti</option>
             <option value="SDN 4 Cihaurbeuti">SDN 4 Cihaurbeuti</option>
-            
             <option value="SDN 1 Cijulang">SDN 1 Cijulang</option>
             <option value="SDN 2 Cijulang">SDN 2 Cijulang</option>
             <option value="SDN 3 Cijulang">SDN 3 Cijulang</option>
-            
             <option value="SDN 1 Padamulya">SDN 1 Padamulya</option>
             <option value="SDN 2 Padamulya">SDN 2 Padamulya</option>
-            
             <option value="SDN 1 Pamokolan">SDN 1 Pamokolan</option>
-            <!-- SDN 2 Pamokolan dihapus -->
-            
             <option value="SDN 1 Pasirtamiang">SDN 1 Pasirtamiang</option>
             <option value="SDN 2 Pasirtamiang">SDN 2 Pasirtamiang</option>
             <option value="SDN 3 Pasirtamiang">SDN 3 Pasirtamiang</option>
             <option value="SDN 4 Pasirtamiang">SDN 4 Pasirtamiang</option>
-            
             <option value="SDN 1 Sukahurip">SDN 1 Sukahurip</option>
             <option value="SDN 3 Sukahurip">SDN 3 Sukahurip</option>
-            
             <option value="SDN 1 Sukamaju">SDN 1 Sukamaju</option>
             <option value="SDN 2 Sukamaju">SDN 2 Sukamaju</option>
             <option value="SDN 3 Sukamaju">SDN 3 Sukamaju</option>
-            
             <option value="SDN 1 Sukasetia">SDN 1 Sukasetia</option>
             <option value="SDN 2 Sukasetia">SDN 2 Sukasetia</option>
-            
             <option value="SDN 1 Sumberjaya">SDN 1 Sumberjaya</option>
             <option value="SDN 2 Sumberjaya">SDN 2 Sumberjaya</option>
             <option value="SDN 3 Sumberjaya">SDN 3 Sumberjaya</option>
-
             <option value="SDN 1 Sukamulya">SDN 1 Sukamulya</option>
             <option value="SDN 2 Sukamulya">SDN 2 Sukamulya</option>
             <option value="SDN 3 Sukamulya">SDN 3 Sukamulya</option>
-            
             <option value="SDN 1 Sukahaji">SDN 1 Sukahaji</option>
             <option value="SDN 2 Sukahaji">SDN 2 Sukahaji</option>
-
             <option value="Lainnya">Lainnya (Tulis Manual)</option>
           </select>
         </div>
@@ -184,82 +188,168 @@
             <button type="button" onclick="clearSignature()" class="text-xs text-red-600 hover:text-red-800 font-bold underline">Hapus Tanda Tangan</button>
           </div>
         </div>
-        <!-- Tombol Simpan -->
+        
         <div class="flex items-center justify-end">
           <button type="submit" class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg focus:outline-none focus:shadow-outline transform hover:scale-105 transition duration-200 shadow-lg">
             SIMPAN DATA
           </button>
         </div>
-
       </form>
     </div>
+  </div>
 
-    <div class="mt-8 text-center text-xs text-gray-400">
-      &copy; 2026 KKG Kelas 6 Kec. Cihaurbeuti
+  <!-- ==================== AREA ADMIN (DASHBOARD) ==================== -->
+  <div id="adminArea" class="max-w-4xl w-full bg-white rounded-xl shadow-lg p-6 relative hidden transition-all">
+    <div class="flex justify-between items-center mb-6 border-b pb-4">
+      <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+        Dashboard Admin
+      </h2>
+      <button onclick="logoutAdmin()" class="bg-red-100 text-red-600 hover:bg-red-200 font-bold py-2 px-4 rounded transition">
+        Logout
+      </button>
     </div>
+
+    <!-- Panel Cetak PDF -->
+    <div class="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-100 flex flex-col md:flex-row gap-4 items-end justify-between">
+      <div class="w-full md:w-auto">
+        <label class="block text-gray-700 text-sm font-bold mb-2">Tanggal Pertemuan (Untuk PDF)</label>
+        <input type="text" id="pdfDate" placeholder="Misal: 12 Maret 2026" class="shadow border rounded w-full md:w-64 py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <button onclick="generatePDF()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow flex items-center justify-center gap-2 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        Cetak PDF Daftar Hadir
+      </button>
+    </div>
+
+    <!-- Tabel Data Guru -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white border rounded-lg">
+        <thead class="bg-gray-100 text-gray-600">
+          <tr>
+            <th class="py-3 px-4 text-left border-b font-semibold">No</th>
+            <th class="py-3 px-4 text-left border-b font-semibold">NIP / NUPTK / NIK</th>
+            <th class="py-3 px-4 text-left border-b font-semibold">Nama Lengkap</th>
+            <th class="py-3 px-4 text-left border-b font-semibold">Asal Sekolah</th>
+            <th class="py-3 px-4 text-center border-b font-semibold">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="adminTableBody" class="text-gray-700 text-sm divide-y">
+          <!-- Data akan di-render di sini -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="mt-8 text-center text-xs text-gray-400">
+    &copy; 2026 KKG Kelas 6 Kec. Cihaurbeuti
   </div>
 
   <script>
     // --- KONFIGURASI PENTING ---
-    // GANTI URL DI BAWAH INI DENGAN LINK APPSCRIPT HASIL DEPLOY ANDA
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyo81wXygS9IEoRxPDMUWfmWE7G4YskX0v8iBTEnfLVcLsLgxRYJu4ctaEspHiEiyRb/exec'; 
-
     let signaturePad;
+    let isAdminMode = false;
+    let globalDataCache = []; // Untuk menyimpan data admin
     
-    // Fungsi resize didefinisikan secara global agar bisa dipanggil ulang
     function resizeCanvas() {
         const canvas = document.getElementById('signature-pad');
-        if (canvas) {
+        if (canvas && canvas.offsetWidth > 0) {
             const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            // Hanya resize jika lebar > 0 (artinya elemen terlihat)
-            if (canvas.offsetWidth > 0) {
-                canvas.width = canvas.offsetWidth * ratio;
-                canvas.height = canvas.offsetHeight * ratio;
-                canvas.getContext("2d").scale(ratio, ratio);
-                // Penting: Kosongkan signature pad setelah resize agar bersih
-                if(signaturePad) signaturePad.clear(); 
-            }
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            if(signaturePad) signaturePad.clear(); 
         }
     }
 
     window.onload = function() {
       const canvas = document.getElementById('signature-pad');
-      // Inisialisasi Signature Pad
-      signaturePad = new SignaturePad(canvas, { 
-        backgroundColor: 'rgba(255, 255, 255, 0)', 
-        penColor: 'rgb(0, 0, 0)' 
-      });
-      
+      signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgba(255, 255, 255, 0)', penColor: 'rgb(0, 0, 0)' });
       window.onresize = resizeCanvas;
     };
 
     function clearSignature() { signaturePad.clear(); }
-    function toggleLoading(show) { document.getElementById('loadingOverlay').classList.toggle('hidden', !show); }
+    
+    function toggleLoading(show, text = 'Memproses Data...') { 
+        document.getElementById('loadingText').innerText = text;
+        document.getElementById('loadingOverlay').classList.toggle('hidden', !show); 
+    }
 
-    // --- FUNGSI API FETCH (PENGGANTI GOOGLE.SCRIPT.RUN) ---
-
-    // 1. FUNGSI CEK DATA (GET)
+    // --- FUNGSI UTAMA USER ---
     async function checkData() {
       const id = document.getElementById('searchId').value.trim();
       if (!id) { Swal.fire('Oops...', 'Harap masukkan NIP / NUPTK / NIK!', 'warning'); return; }
 
-      toggleLoading(true);
-      
+      toggleLoading(true, 'Mencari Data...');
       try {
-        // Menggunakan Fetch GET dengan parameter ?action=search
         const response = await fetch(`${SCRIPT_URL}?action=search&id=${id}`);
         const result = await response.json();
-        
-        onDataChecked(result);
+        onDataChecked(result, id);
       } catch (error) {
-        onFailure(error);
+        toggleLoading(false);
+        Swal.fire('Error Koneksi', 'Gagal menghubungi server.', 'error');
       }
     }
 
-    // 2. FUNGSI SIMPAN DATA (POST)
+    const showForm = () => {
+        document.getElementById('stepForm').classList.remove('hidden');
+        document.getElementById('stepForm').scrollIntoView({ behavior: 'smooth' });
+        setTimeout(resizeCanvas, 100); 
+    };
+
+    function onDataChecked(result, searchedId) {
+      toggleLoading(false);
+      const msgDiv = document.getElementById('statusMessage');
+      document.getElementById('inputId').value = searchedId;
+
+      if (result.ditemukan) {
+        Swal.fire({
+            title: 'Data Ditemukan!',
+            html: `Data atas nama <b>${result.data.nama}</b> sudah ada.<br>Update jika ada perubahan.`,
+            icon: 'success', confirmButtonText: 'Lanjut Update Data'
+        }).then((swalRes) => {
+            if (swalRes.isConfirmed) {
+                showForm();
+                msgDiv.className = "mb-6 p-4 rounded-lg bg-yellow-100 text-yellow-800 border flex items-center";
+                msgDiv.innerHTML = `<span><strong>Mode Update:</strong> Mengedit data yang sudah ada.</span>`;
+                msgDiv.classList.remove('hidden');
+                isiFormDariData(result.data);
+            }
+        });
+      } else {
+        Swal.fire({
+            title: 'Data Belum Ada', text: 'Silakan isi formulir baru.', icon: 'info', confirmButtonText: 'Isi Formulir'
+        }).then((swalRes) => {
+            if (swalRes.isConfirmed) {
+                showForm();
+                msgDiv.className = "mb-6 p-4 rounded-lg bg-blue-100 text-blue-800 border flex items-center";
+                msgDiv.innerHTML = `<span><strong>Pendaftaran Baru:</strong> Lengkapi data diri Anda.</span>`;
+                msgDiv.classList.remove('hidden');
+                document.getElementById('memberForm').reset();
+                document.getElementById('inputId').value = searchedId;
+                signaturePad.clear();
+            }
+        });
+      }
+    }
+
+    function isiFormDariData(data) {
+        document.getElementById('inputNama').value = data.nama;
+        document.getElementById('inputSekolah').value = data.sekolah;
+        document.getElementById('inputStatus').value = data.status;
+        document.getElementById('inputBaju').value = data.baju;
+        document.getElementById('inputSepatu').value = data.sepatu;
+        const radios = document.getElementsByName('jk');
+        for (let r of radios) { if (r.value === data.jk) r.checked = true; }
+        if(data.ttd && data.ttd.length > 50) {
+            document.getElementById('ttdNote').innerText = "TTD lama tersimpan. TTD ulang hanya jika ingin menggantinya.";
+        }
+    }
+
     async function saveData() {
       const formObject = {
-        action: 'save', // Penanda untuk backend
+        action: 'save',
         id: document.getElementById('inputId').value,
         nama: document.getElementById('inputNama').value,
         sekolah: document.getElementById('inputSekolah').value,
@@ -271,117 +361,259 @@
         signatureData: ""
       };
 
-      if (!signaturePad.isEmpty()) {
-        formObject.signatureData = signaturePad.toDataURL();
-      } 
+      if (!signaturePad.isEmpty()) formObject.signatureData = signaturePad.toDataURL();
 
-      toggleLoading(true);
-
+      toggleLoading(true, 'Menyimpan Data...');
       try {
-        // Menggunakan Fetch POST
-        const response = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify(formObject)
-        });
-        
+        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(formObject) });
         const result = await response.json();
-        onSaveSuccess(result);
-
+        toggleLoading(false);
+        
+        if (result.status === 'success') {
+            Swal.fire('Berhasil!', result.message, 'success').then(() => {
+                if(isAdminMode) {
+                    cancelForm(); // Kembali ke tabel admin
+                    fetchAdminData(); // Refresh data tabel
+                } else {
+                    location.reload(); 
+                }
+            });
+        } else {
+            Swal.fire('Gagal!', result.message, 'error');
+        }
       } catch (error) {
-        onFailure(error);
+        toggleLoading(false);
+        Swal.fire('Error Koneksi', 'Gagal menghubungi server.', 'error');
       }
     }
 
-    // --- CALLBACKS (Sama seperti sebelumnya) ---
+    // ==========================================
+    // --- AREA ADMIN (LOGIC & PDF) ---
+    // ==========================================
 
-    function onDataChecked(result) {
-      toggleLoading(false);
-      const formDiv = document.getElementById('stepForm');
-      const msgDiv = document.getElementById('statusMessage');
-      const inputId = document.getElementById('inputId');
-
-      // Set ID di form (hidden dulu sampai popup diklik)
-      inputId.value = document.getElementById('searchId').value;
-
-      // Fungsi helper untuk membuka form dan mengatur TTD
-      const showForm = () => {
-         formDiv.classList.remove('hidden');
-         formDiv.scrollIntoView({ behavior: 'smooth' });
-         // FIX: Resize canvas setelah form terlihat agar ukurannya benar
-         setTimeout(resizeCanvas, 100); 
-      };
-
-      if (result.ditemukan) {
-        // SCENARIO 1: DATA DITEMUKAN (UPDATE)
+    function loginAdmin() {
         Swal.fire({
-            title: 'Data Ditemukan!',
-            html: `Data atas nama <b>${result.data.nama}</b> sudah ada.<br>Silakan periksa dan update jika ada perubahan.`,
-            icon: 'success',
-            confirmButtonText: 'Lanjut Update Data',
-            confirmButtonColor: '#3085d6'
-        }).then((swalResult) => {
-            if (swalResult.isConfirmed) {
-                showForm();
-                
-                msgDiv.className = "mb-6 p-4 rounded-lg bg-yellow-100 text-yellow-800 border border-yellow-200 flex items-center";
-                msgDiv.innerHTML = `<span><strong>Mode Update:</strong> Anda sedang mengedit data yang sudah ada.</span>`;
-                msgDiv.classList.remove('hidden');
+            title: 'Login Admin',
+            html: `
+                <input id="swal-user" class="swal2-input" placeholder="Username" autocapitalize="off">
+                <input id="swal-pass" type="password" class="swal2-input" placeholder="Password">
+            `,
+            confirmButtonText: 'Masuk',
+            focusConfirm: false,
+            preConfirm: () => {
+                const user = document.getElementById('swal-user').value;
+                const pass = document.getElementById('swal-pass').value;
+                if (!user || !pass) Swal.showValidationMessage(`Harap isi semua kolom`);
+                return { user: user, pass: pass };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Kredensial sesuai permintaan
+                if (result.value.user === 'admin' && result.value.pass === 'admin') {
+                    isAdminMode = true;
+                    document.getElementById('mainArea').classList.add('hidden');
+                    document.getElementById('adminArea').classList.remove('hidden');
+                    // Set default tanggal hari ini
+                    const today = new Date();
+                    document.getElementById('pdfDate').value = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                    fetchAdminData();
+                } else {
+                    Swal.fire('Akses Ditolak', 'Username atau Password salah!', 'error');
+                }
+            }
+        });
+    }
 
-                // Isi form dengan data
-                const data = result.data;
-                document.getElementById('inputNama').value = data.nama;
-                document.getElementById('inputSekolah').value = data.sekolah;
-                document.getElementById('inputStatus').value = data.status;
-                document.getElementById('inputBaju').value = data.baju;
-                document.getElementById('inputSepatu').value = data.sepatu;
-                const radios = document.getElementsByName('jk');
-                for (let r of radios) { if (r.value === data.jk) r.checked = true; }
-                
-                if(data.ttd && data.ttd.length > 50) {
-                   document.getElementById('ttdNote').innerText = "Tanda tangan lama tersimpan. Tanda tangan ulang hanya jika ingin menggantinya.";
+    function logoutAdmin() {
+        isAdminMode = false;
+        document.getElementById('adminArea').classList.add('hidden');
+        document.getElementById('mainArea').classList.remove('hidden');
+        document.getElementById('stepForm').classList.add('hidden');
+        document.getElementById('memberForm').reset();
+    }
+
+    async function fetchAdminData() {
+        toggleLoading(true, 'Mengambil Semua Data...');
+        try {
+            const response = await fetch(`${SCRIPT_URL}?action=getAll`);
+            const result = await response.json();
+            toggleLoading(false);
+            
+            if (result.status === 'success') {
+                globalDataCache = result.data;
+                renderAdminTable();
+            } else {
+                Swal.fire('Gagal', result.message, 'error');
+            }
+        } catch (error) {
+            toggleLoading(false);
+            Swal.fire('Error', 'Gagal memuat data admin.', 'error');
+        }
+    }
+
+    function renderAdminTable() {
+        const tbody = document.getElementById('adminTableBody');
+        tbody.innerHTML = '';
+        
+        if(globalDataCache.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-500 italic">Belum ada data anggota.</td></tr>`;
+            return;
+        }
+
+        globalDataCache.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-gray-50";
+            tr.innerHTML = `
+                <td class="py-3 px-4 border-b">${index + 1}</td>
+                <td class="py-3 px-4 border-b font-medium text-gray-800">${item.id}</td>
+                <td class="py-3 px-4 border-b">${item.nama}</td>
+                <td class="py-3 px-4 border-b">${item.sekolah}</td>
+                <td class="py-3 px-4 border-b text-center">
+                    <button onclick="editByAdmin('${item.id}')" class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold py-1 px-3 rounded shadow">
+                        Edit
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function editByAdmin(id) {
+        // Cari data dari cache
+        const user = globalDataCache.find(u => u.id === id);
+        if(!user) return;
+
+        // Sembunyikan Area Admin, Tampilkan Area Form Edit
+        document.getElementById('adminArea').classList.add('hidden');
+        document.getElementById('mainArea').classList.remove('hidden');
+        document.getElementById('stepSearch').classList.add('hidden'); // Sembunyikan pencarian
+        
+        document.getElementById('inputId').value = user.id;
+        document.getElementById('btnCancelAdmin').classList.remove('hidden'); // Tampilkan tombol Batal
+        
+        const msgDiv = document.getElementById('statusMessage');
+        msgDiv.className = "mb-6 p-4 rounded-lg bg-yellow-100 text-yellow-800 border flex items-center";
+        msgDiv.innerHTML = `<span><strong>Edit Admin:</strong> Mengubah data atas nama ${user.nama}.</span>`;
+        msgDiv.classList.remove('hidden');
+
+        isiFormDariData(user);
+        showForm();
+    }
+
+    function cancelForm() {
+        if(isAdminMode) {
+            document.getElementById('mainArea').classList.add('hidden');
+            document.getElementById('stepSearch').classList.remove('hidden'); // Kembalikan step search
+            document.getElementById('stepForm').classList.add('hidden');
+            document.getElementById('adminArea').classList.remove('hidden');
+            document.getElementById('memberForm').reset();
+            document.getElementById('btnCancelAdmin').classList.add('hidden');
+        }
+    }
+
+    // --- FUNGSI GENERATE PDF (jsPDF & AutoTable) ---
+    function generatePDF() {
+        if(globalDataCache.length === 0) {
+            Swal.fire('Kosong', 'Tidak ada data untuk dicetak.', 'warning');
+            return;
+        }
+
+        const tanggal = document.getElementById('pdfDate').value || new Date().toLocaleDateString('id-ID');
+        
+        // Setup jsPDF (Portrait, mm, A4)
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        
+        // --- HEADER KOP SURAT ---
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("DAFTAR HADIR ANGGOTA KKG KELAS 6", 105, 15, { align: "center" });
+        doc.setFontSize(12);
+        doc.text("KECAMATAN CIHAURBEUTI KABUPATEN CIAMIS", 105, 21, { align: "center" });
+        
+        // Garis pemisah
+        doc.setLineWidth(0.5);
+        doc.line(15, 25, 195, 25);
+        
+        // Info Tanggal
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        doc.text(`Tanggal Pertemuan : ${tanggal}`, 15, 33);
+
+        // --- PREPARE DATA TABEL ---
+        const tableBody = globalDataCache.map((item, index) => {
+            return [
+                index + 1,
+                `${item.nama}\nNIP/NIK: ${item.id}`,
+                item.sekolah,
+                "" // Kolom kosong untuk diisi gambar TTD
+            ];
+        });
+
+        // --- RENDER TABEL ---
+        doc.autoTable({
+            startY: 38,
+            head: [['No', 'Nama / NIP', 'Asal Sekolah', 'Tanda Tangan']],
+            body: tableBody,
+            theme: 'grid',
+            headStyles: { fillColor: [41, 128, 185], textColor: 255, halign: 'center', valign: 'middle' },
+            styles: { fontSize: 10, cellPadding: 3, valign: 'middle' },
+            columnStyles: {
+                0: { halign: 'center', cellWidth: 12 },
+                1: { cellWidth: 70 },
+                2: { cellWidth: 50 },
+                3: { cellWidth: 45, minCellHeight: 20 } // Tinggi disesuaikan untuk TTD
+            },
+            // Hook untuk menggambar gambar Base64 ke dalam cell "Tanda Tangan"
+            didDrawCell: function(data) {
+                if (data.column.index === 3 && data.cell.section === 'body') {
+                    const rowIndex = data.row.index;
+                    const user = globalDataCache[rowIndex];
+                    
+                    // Cek jika ttd ada dan format base64 gambar
+                    if (user.ttd && user.ttd.startsWith('data:image')) {
+                        try {
+                            // Hitung posisi tengah untuk gambar
+                            const imgWidth = 35;
+                            const imgHeight = 15;
+                            const xPos = data.cell.x + (data.cell.width - imgWidth) / 2;
+                            const yPos = data.cell.y + (data.cell.height - imgHeight) / 2;
+                            
+                            doc.addImage(user.ttd, 'PNG', xPos, yPos, imgWidth, imgHeight);
+                        } catch(e) { console.error("Gagal meload TTD baris " + rowIndex); }
+                    } else {
+                        // Jika tidak ada TTD digital, kasih nomor urut titik-titik untuk TTD manual
+                        doc.setFontSize(9);
+                        doc.text(`${rowIndex + 1}. .........`, data.cell.x + 2, data.cell.y + 8);
+                    }
                 }
             }
         });
 
-      } else {
-        // SCENARIO 2: DATA BARU
-        Swal.fire({
-            title: 'Data Belum Ada',
-            text: 'Data tidak ditemukan. Silakan isi formulir pendaftaran baru.',
-            icon: 'info',
-            confirmButtonText: 'Isi Formulir Baru',
-            confirmButtonColor: '#10B981'
-        }).then((swalResult) => {
-            if (swalResult.isConfirmed) {
-                showForm();
-                
-                msgDiv.className = "mb-6 p-4 rounded-lg bg-blue-100 text-blue-800 border border-blue-200 flex items-center";
-                msgDiv.innerHTML = `<span><strong>Pendaftaran Baru:</strong> Silakan lengkapi data diri Anda.</span>`;
-                msgDiv.classList.remove('hidden');
-                
-                // Reset Form
-                document.getElementById('memberForm').reset();
-                document.getElementById('inputId').value = document.getElementById('searchId').value;
-                signaturePad.clear();
-            }
-        });
-      }
-    }
+        // --- FOOTER TANDA TANGAN KETUA ---
+        const finalY = doc.lastAutoTable.finalY || 40;
+        
+        // Cek apakah halaman cukup untuk TTD ketua, jika tidak buat halaman baru
+        if (finalY > 250) {
+            doc.addPage();
+            var yPosTtd = 30;
+        } else {
+            var yPosTtd = finalY + 20;
+        }
 
-    function onSaveSuccess(result) {
-      toggleLoading(false);
-      if (result.status === 'success') {
-        Swal.fire({ title: 'Berhasil!', text: result.message, icon: 'success' })
-          .then((res) => { if (res.isConfirmed) location.reload(); });
-      } else {
-        Swal.fire('Gagal!', result.message, 'error');
-      }
-    }
+        doc.setFontSize(11);
+        doc.text(`Cihaurbeuti, ${tanggal}`, 140, yPosTtd);
+        doc.text("Ketua KKG Kelas 6,", 140, yPosTtd + 6);
+        
+        // Nama Ketua
+        doc.setFont("helvetica", "bold");
+        doc.text("Heris Apriadi", 140, yPosTtd + 30);
+        // Garis bawah nama
+        doc.setLineWidth(0.3);
+        doc.line(140, yPosTtd + 31, 185, yPosTtd + 31);
 
-    function onFailure(error) {
-      toggleLoading(false);
-      console.error(error);
-      Swal.fire('Error Koneksi', 'Gagal menghubungi server. Pastikan internet lancar.', 'error');
+        // Unduh PDF
+        doc.save(`Daftar_Hadir_KKG_${tanggal.replace(/\s+/g, '_')}.pdf`);
     }
   </script>
 </body>

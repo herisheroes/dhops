@@ -210,16 +210,57 @@
       </button>
     </div>
 
-    <!-- Panel Cetak PDF -->
-    <div class="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-100 flex flex-col md:flex-row gap-4 items-end justify-between">
-      <div class="w-full md:w-auto">
-        <label class="block text-gray-700 text-sm font-bold mb-2">Tanggal Pertemuan (Untuk PDF)</label>
-        <input type="text" id="pdfDate" placeholder="Misal: 12 Maret 2026" class="shadow border rounded w-full md:w-64 py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <!-- Panel Konfigurasi Cetak PDF -->
+    <div class="bg-blue-50 p-5 rounded-lg mb-6 border border-blue-100">
+      <h3 class="text-lg font-bold text-blue-800 mb-4 border-b border-blue-200 pb-2">Konfigurasi Cetak Lengkap (Undangan, LPT, Daftar Hadir)</h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+            <label class="block text-gray-700 text-xs font-bold mb-1">Nomor Surat</label>
+            <input type="text" id="pdfNomor" value="003/KKG-SD-Kls6/III/2026" class="shadow border rounded w-full py-2 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-gray-700 text-xs font-bold mb-1">Tempat & Tanggal Pembuatan Surat</label>
+            <input type="text" id="pdfTitimangsa" value="Cihaurbeuti, 12 Maret 2026" class="shadow border rounded w-full py-2 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-gray-700 text-xs font-bold mb-1">Hari, Tanggal Pelaksanaan</label>
+            <input type="text" id="pdfHariTanggal" value="Kamis, 12 Maret 2026" class="shadow border rounded w-full py-2 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-gray-700 text-xs font-bold mb-1">Tanggal Berlaku / Kembali (Untuk LPT)</label>
+            <input type="text" id="pdfTglPelaksanaan" value="12 Maret 2026" class="shadow border rounded w-full py-2 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-gray-700 text-xs font-bold mb-1">Waktu Pelaksanaan</label>
+            <input type="text" id="pdfWaktu" value="Pukul 10.00 – Selesai" class="shadow border rounded w-full py-2 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-gray-700 text-xs font-bold mb-1">Tempat Pelaksanaan</label>
+            <input type="text" id="pdfTempat" value="Aula Korwil Kec. Cihaurbeuti" class="shadow border rounded w-full py-2 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-gray-700 text-xs font-bold mb-1">Link Materi (Untuk LPT)</label>
+            <input type="text" id="pdfLink" value="https://s.id/materikkg6-2026" class="shadow border rounded w-full py-2 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
       </div>
-      <button onclick="generatePDF()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow flex items-center justify-center gap-2 transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-        Cetak PDF Daftar Hadir
-      </button>
+      
+      <div class="mb-4">
+          <label class="block text-gray-700 text-xs font-bold mb-1">Agenda Acara (Pisahkan Tiap Poin dengan Enter)</label>
+          <textarea id="pdfAgenda" rows="3" class="shadow border rounded w-full py-2 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Workshop Penggunaan Teknologi dalam Pembelajaran
+Pembahasan soal-soal TKA</textarea>
+      </div>
+
+      <div class="flex flex-col md:flex-row justify-end mt-4 gap-3">
+        <button onclick="generatePDF('undangan')" class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded shadow flex items-center justify-center gap-2 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          Unduh Surat Undangan
+        </button>
+        <button onclick="generatePDF('lengkap')" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded shadow flex items-center justify-center gap-2 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+          Unduh Berkas Lengkap (PDF)
+        </button>
+      </div>
     </div>
 
     <!-- Tabel Data Guru -->
@@ -250,7 +291,7 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyo81wXygS9IEoRxPDMUWfmWE7G4YskX0v8iBTEnfLVcLsLgxRYJu4ctaEspHiEiyRb/exec'; 
     let signaturePad;
     let isAdminMode = false;
-    let globalDataCache = []; // Untuk menyimpan data admin
+    let globalDataCache = []; 
     
     function resizeCanvas() {
         const canvas = document.getElementById('signature-pad');
@@ -408,14 +449,10 @@
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Kredensial sesuai permintaan
                 if (result.value.user === 'admin' && result.value.pass === 'admin') {
                     isAdminMode = true;
                     document.getElementById('mainArea').classList.add('hidden');
                     document.getElementById('adminArea').classList.remove('hidden');
-                    // Set default tanggal hari ini
-                    const today = new Date();
-                    document.getElementById('pdfDate').value = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
                     fetchAdminData();
                 } else {
                     Swal.fire('Akses Ditolak', 'Username atau Password salah!', 'error');
@@ -479,17 +516,15 @@
     }
 
     function editByAdmin(id) {
-        // Cari data dari cache
         const user = globalDataCache.find(u => u.id === id);
         if(!user) return;
 
-        // Sembunyikan Area Admin, Tampilkan Area Form Edit
         document.getElementById('adminArea').classList.add('hidden');
         document.getElementById('mainArea').classList.remove('hidden');
-        document.getElementById('stepSearch').classList.add('hidden'); // Sembunyikan pencarian
+        document.getElementById('stepSearch').classList.add('hidden'); 
         
         document.getElementById('inputId').value = user.id;
-        document.getElementById('btnCancelAdmin').classList.remove('hidden'); // Tampilkan tombol Batal
+        document.getElementById('btnCancelAdmin').classList.remove('hidden'); 
         
         const msgDiv = document.getElementById('statusMessage');
         msgDiv.className = "mb-6 p-4 rounded-lg bg-yellow-100 text-yellow-800 border flex items-center";
@@ -503,7 +538,7 @@
     function cancelForm() {
         if(isAdminMode) {
             document.getElementById('mainArea').classList.add('hidden');
-            document.getElementById('stepSearch').classList.remove('hidden'); // Kembalikan step search
+            document.getElementById('stepSearch').classList.remove('hidden'); 
             document.getElementById('stepForm').classList.add('hidden');
             document.getElementById('adminArea').classList.remove('hidden');
             document.getElementById('memberForm').reset();
@@ -511,68 +546,254 @@
         }
     }
 
-    // --- FUNGSI GENERATE PDF (jsPDF & AutoTable) ---
-    async function generatePDF() {
-        if(globalDataCache.length === 0) {
-            Swal.fire('Kosong', 'Tidak ada data untuk dicetak.', 'warning');
+    // --- FUNGSI GENERATE PDF GABUNGAN (UNDANGAN + LPT + DAFTAR HADIR) ---
+    async function generatePDF(type = 'lengkap') {
+        if(globalDataCache.length === 0 && type === 'lengkap') {
+            Swal.fire('Kosong', 'Tidak ada data untuk dicetak di Daftar Hadir.', 'warning');
             return;
         }
 
-        const tanggal = document.getElementById('pdfDate').value || new Date().toLocaleDateString('id-ID');
+        const nomorSurat = document.getElementById('pdfNomor').value;
+        const titimangsa = document.getElementById('pdfTitimangsa').value;
+        const hariTanggal = document.getElementById('pdfHariTanggal').value;
+        const tglPelaksanaan = document.getElementById('pdfTglPelaksanaan').value;
+        const waktu = document.getElementById('pdfWaktu').value;
+        const tempat = document.getElementById('pdfTempat').value;
+        const agendaTxt = document.getElementById('pdfAgenda').value;
+        const linkMateri = document.getElementById('pdfLink').value;
         
-        // Menyalakan loader sementara proses rendering
-        toggleLoading(true, 'Menyiapkan File PDF (Mengecilkan Ukuran)...');
+        const agendaArr = agendaTxt.split('\n').filter(item => item.trim() !== '');
 
-        // Fungsi bantuan untuk memuat gambar dari URL sebagai Promise
-        const loadKetuaSignature = (url) => new Promise((resolve) => {
+        const loadingMsg = type === 'undangan' ? 'Menyiapkan Surat Undangan...\nMohon tunggu.' : 'Menyiapkan Berkas PDF Lengkap...\nMohon tunggu.';
+        toggleLoading(true, loadingMsg);
+
+        // Fungsi load gambar
+        const loadImg = (url) => new Promise((resolve) => {
             const img = new Image();
             img.crossOrigin = 'Anonymous';
             img.onload = () => resolve(img);
-            img.onerror = () => resolve(null); // Resolves to null jika gagal (mencegah error)
+            img.onerror = () => resolve(null);
             img.src = url;
         });
 
-        // Mengambil gambar TTD Ketua sebelum render PDF
-        const ketuaImg = await loadKetuaSignature('https://raw.githubusercontent.com/herisheroes/dhops/refs/heads/main/TTDHERIS.png');
+        // Load ke-5 gambar secara asinkron (Logo, TTD Ketua, TTD Sekretaris, Barcode, Stempel)
+        const [ketuaImg, sekreImg, logoKkgImg, barcodeImg, stempelImg] = await Promise.all([
+            loadImg('https://raw.githubusercontent.com/herisheroes/dhops/refs/heads/main/TTDHERIS.png'),
+            loadImg('https://raw.githubusercontent.com/herisheroes/dhops/refs/heads/main/ttdrianti.png'),
+            loadImg('https://raw.githubusercontent.com/herisheroes/dhops/refs/heads/main/KKG%20CIHAURBEUTI.png'),
+            loadImg('https://raw.githubusercontent.com/herisheroes/dhops/refs/heads/main/materikkg6.png'),
+            loadImg('https://raw.githubusercontent.com/herisheroes/dhops/refs/heads/main/stempelkkg.png')
+        ]);
 
-        // Setup jsPDF (Portrait, mm, A4) DENGAN COMPRESS GLOBAL DIAKTIFKAN
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({
-            orientation: 'p',
-            unit: 'mm',
-            format: 'a4',
-            compress: true // KOMPRESI TINGKAT TINGGI
-        });
+        const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
         
-        // --- HEADER KOP SURAT ---
+        // ========================================================
+        // HALAMAN 1: SURAT UNDANGAN
+        // ========================================================
+        
+        // Menempelkan Logo KKG Kiri Atas
+        if (logoKkgImg) {
+            doc.addImage(logoKkgImg, 'PNG', 15, 10, 26, 26, 'logo_kkg', 'FAST');
+        }
+
         doc.setFontSize(14);
         doc.setFont("helvetica", "bold");
-        doc.text("DAFTAR HADIR ANGGOTA KKG KELAS 6", 105, 15, { align: "center" });
+        doc.text("KELOMPOK KERJA GURU KELAS VI", 105, 20, { align: "center" });
+        doc.text("(KKG KELAS VI)", 105, 26, { align: "center" });
+        doc.text("KORWIL PENDIDIKAN KECAMATAN CIHAURBEUTI", 105, 32, { align: "center" });
+        
+        doc.setLineWidth(0.8); doc.line(15, 38, 195, 38);
+        doc.setLineWidth(0.2); doc.line(15, 39.5, 195, 39.5);
+
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        
+        // Kanan: Titimangsa
+        doc.text(titimangsa, 195, 48, { align: "right" });
+        
+        // Kiri: Info Surat
+        doc.text(`Nomor     : ${nomorSurat}`, 15, 48);
+        doc.text(`Perihal   : Undangan Rapat KKG Kelas VI`, 15, 54);
+        doc.text(`Lampiran  : -`, 15, 60);
+
+        // Kanan: Tujuan
+        doc.text("Kepada", 130, 54);
+        doc.text("Yth. Bapak/ Ibu Guru Kelas VI", 130, 60);
+        doc.text("Kecamatan Cihaurbeuti", 130, 66);
+        doc.text("di", 130, 72);
+        doc.text("Tempat", 140, 78);
+
+        // Isi Surat
+        let ySurat = 90;
+        doc.text("Assalamu’alaikum Wr. Wb", 15, ySurat);
+        ySurat += 8;
+        
+        // PENGGUNAAN ALIGN: LEFT (Bawaan) MENCEGAH TEKS OVERFLOW KE KANAN. 
+        // Menggunakan splitTextToSize murni agar memotong teks dengan benar.
+        const paragraf1 = "Alhamdulillah puji syukur kita panjatkan kehadirat Allah SWT atas taufiq, hidayah dan inayah-Nya. Shalawat dan salam senantiasa tercurahkan kepada Nabi Muhammad SAW, beserta keluarganya, sahabat, dan pengikut beliau sampai akhir zaman.";
+        const lines1 = doc.splitTextToSize(paragraf1, 180);
+        doc.text(lines1, 15, ySurat);
+        ySurat += (lines1.length * 5) + 4;
+        
+        const paragraf2 = "Disampaikan dengan hormat dikarenakan ada beberapa hal yang perlu dimusyawarahkan, maka dengan ini kami mengundang seluruh guru KKG Kelas VI Se-Kecamatan Cihaurbeuti untuk hadir pada:";
+        const lines2 = doc.splitTextToSize(paragraf2, 180);
+        doc.text(lines2, 15, ySurat);
+        ySurat += (lines2.length * 5) + 4;
+        
+        // Detail Pelaksanaan
+        doc.text("Hari, tanggal", 25, ySurat); doc.text(`: ${hariTanggal}`, 60, ySurat); ySurat += 6;
+        doc.text("Waktu", 25, ySurat); doc.text(`: ${waktu}`, 60, ySurat); ySurat += 6;
+        doc.text("Tempat", 25, ySurat); doc.text(`: ${tempat}`, 60, ySurat); ySurat += 6;
+        doc.text("Agenda Acara", 25, ySurat); doc.text(":", 60, ySurat); 
+        
+        agendaArr.forEach(item => {
+            const splitAgenda = doc.splitTextToSize(`- ${item}`, 125);
+            doc.text(splitAgenda, 65, ySurat);
+            ySurat += (splitAgenda.length * 5) + 1;
+        });
+        
+        ySurat += 4;
+        const paragraf3 = "Demikian undangan ini kami sampaikan. Atas segala perhatian dan kehadirannya kami sampaikan terimakasih.";
+        doc.text(doc.splitTextToSize(paragraf3, 180), 15, ySurat);
+        ySurat += 10;
+        
+        doc.text("Wassalamu’alaikum Wr. Wb", 15, ySurat);
+        ySurat += 12;
+
+        // Tanda Tangan Undangan
+        doc.text("Pengurus KKG Kelas VI Kecamatan Cihaurbeuti", 105, ySurat, { align: "center" });
+        ySurat += 8;
+        doc.text("Ketua,", 50, ySurat, { align: "center" });
+        doc.text("Sekertaris,", 160, ySurat, { align: "center" });
+        
+        // Gambar Tanda Tangan Ketua, Sekretaris & Stempel di Halaman 1
+        if (stempelImg) {
+            doc.addImage(stempelImg, 'PNG', 90, ySurat - 5, 30, 30, 'stempel', 'FAST');
+        }
+        if (ketuaImg) {
+            doc.addImage(ketuaImg, 'PNG', 35, ySurat + 2, 30, 20, 'ttd_ketua', 'FAST');
+        }
+        if (sekreImg) {
+            doc.addImage(sekreImg, 'PNG', 145, ySurat + 2, 30, 20, 'ttd_sekre', 'FAST');
+        }
+
+        ySurat += 28;
+        doc.setFont("helvetica", "bold");
+        doc.text("HERIS APRIADI, S.Pd", 50, ySurat, { align: "center" });
+        doc.text("RIANTI LESTARI, S.Pd", 160, ySurat, { align: "center" });
+        doc.setFont("helvetica", "normal");
+        doc.text("NIP. 19860424 202221 1 007", 50, ySurat + 5, { align: "center" });
+        doc.text("NIP. 19861216 202221 2 007", 160, ySurat + 5, { align: "center" });
+
+        ySurat += 15;
+        doc.setFont("helvetica", "bold");
+        doc.text("Tembusan :", 15, ySurat);
+        doc.setFont("helvetica", "normal");
+        doc.text("Yth. Korwil Bidang Pendidikan Kecamatan Cihaurbeuti", 15, ySurat + 6);
+        doc.text("Yth. Pengawas SD Kecamatan Cihaurbeuti", 15, ySurat + 12);
+        doc.text("Yth. Ketua K3S Kecamatan Cihaurbeuti", 15, ySurat + 18);
+        doc.text("Yth. Ketua KKG Kecamatan Cihaurbeuti", 15, ySurat + 24);
+
+        // Jika hanya unduh undangan, simpan dan hentikan eksekusi di sini
+        if (type === 'undangan') {
+            doc.save(`Surat_Undangan_KKG_${tglPelaksanaan.replace(/\s+/g, '_')}.pdf`);
+            toggleLoading(false);
+            return;
+        }
+
+        // ========================================================
+        // HALAMAN 2: LAPORAN PELAKSANAAN TUGAS (LPT)
+        // ========================================================
+        doc.addPage();
+        
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("LAPORAN PELAKSANAAN TUGAS", 105, 30, { align: "center" });
+        doc.text("(LPT)", 105, 36, { align: "center" });
+        
         doc.setFontSize(12);
-        doc.text("KECAMATAN CIHAURBEUTI KABUPATEN CIAMIS", 105, 21, { align: "center" });
+        doc.setFont("helvetica", "normal");
+        let yLPT = 55;
         
-        // Garis pemisah
-        doc.setLineWidth(0.5);
-        doc.line(15, 25, 195, 25);
+        // Penyesuaian jarak titik dua agar lebih rapi dan tdk tumpang tindih
+        doc.text("Nama", 20, yLPT); doc.text(":", 55, yLPT); doc.text(".......................................................................................", 60, yLPT); yLPT += 10;
+        doc.text("NIP", 20, yLPT); doc.text(":", 55, yLPT); doc.text(".......................................................................................", 60, yLPT); yLPT += 10;
+        doc.text("Jabatan", 20, yLPT); doc.text(":", 55, yLPT); doc.text("Guru Kelas VI", 60, yLPT); yLPT += 10;
         
-        // Info Tanggal
+        doc.text("Dasar", 20, yLPT); doc.text(":", 55, yLPT); 
+        const txtDasar = doc.splitTextToSize("Surat Undangan dari Ketua KKG Kelas VI Korwil Cihaurbeuti", 130);
+        doc.text(txtDasar, 60, yLPT); yLPT += (txtDasar.length * 6) + 4;
+        
+        doc.text("Tujuan", 20, yLPT); doc.text(":", 55, yLPT); 
+        const txtTujuan = doc.splitTextToSize("Mengikuti Kegiatan rutin KKG kelas VI Korwil Cihaurbeuti", 130);
+        doc.text(txtTujuan, 60, yLPT); yLPT += (txtTujuan.length * 6) + 4;
+        
+        doc.text("Waktu", 20, yLPT); doc.text(":", 55, yLPT); doc.text(`- Berlaku tanggal    : ${tglPelaksanaan}`, 60, yLPT); yLPT += 8;
+        doc.text(`- Kembali tanggal : ${tglPelaksanaan}`, 60, yLPT); yLPT += 10;
+        
+        // FIX: Tumpang Tindih Area "Kesimpulan"
+        doc.text("Kesimpulan Pelapor", 20, yLPT); 
+        doc.text(":", 55, yLPT);
+        doc.text("Susunan acara kegiatan KKG Kelas VI yaitu :", 60, yLPT); yLPT += 8;
+        doc.text("1. Pembukaan", 60, yLPT); yLPT += 8;
+        doc.text("2. Sambutan dari Ketua KKG Kelas VI", 60, yLPT); yLPT += 8;
+        
+        agendaArr.forEach((item, index) => {
+            const splitAgendaItem = doc.splitTextToSize(`${index + 3}. ${item}`, 130);
+            doc.text(splitAgendaItem, 60, yLPT);
+            yLPT += (splitAgendaItem.length * 6) + 2;
+        });
+
+        doc.text("Link Materi :", 60, yLPT);
+        // Memberi warna biru pada teks link
+        doc.setTextColor(0, 0, 255);
+        doc.text(linkMateri, 88, yLPT);
+        doc.setTextColor(0, 0, 0); // Kembalikan ke warna hitam
+
+        yLPT += 5;
+
+        // Menyisipkan gambar barcode materi
+        if (barcodeImg) {
+            doc.addImage(barcodeImg, 'PNG', 60, yLPT, 30, 30, 'barcode_materi', 'FAST');
+            yLPT += 35;
+        }
+
+        yLPT += 15;
+        doc.text(titimangsa, 140, yLPT);
+        doc.text("Pelapor,", 140, yLPT + 8);
+        doc.text("................................................", 140, yLPT + 35);
+
+
+        // ========================================================
+        // HALAMAN 3+: DAFTAR HADIR (TABEL)
+        // ========================================================
+        doc.addPage();
+        
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("DAFTAR HADIR ANGGOTA KKG KELAS 6", 105, 20, { align: "center" });
+        doc.setFontSize(12);
+        doc.text("KECAMATAN CIHAURBEUTI KABUPATEN CIAMIS", 105, 26, { align: "center" });
+        
+        doc.setLineWidth(0.5); doc.line(15, 30, 195, 30);
+        
         doc.setFont("helvetica", "normal");
         doc.setFontSize(11);
-        doc.text(`Tanggal Pertemuan : ${tanggal}`, 15, 33);
+        doc.text(`Agenda Acara       : Pertemuan Rutin KKG Kelas VI`, 15, 38);
+        doc.text(`Hari / Tanggal      : ${hariTanggal}`, 15, 44);
 
-        // --- PREPARE DATA TABEL ---
         const tableBody = globalDataCache.map((item, index) => {
             return [
                 index + 1,
                 `${item.nama}\nNIP/NIK: ${item.id}`,
                 item.sekolah,
-                "" // Kolom kosong untuk diisi gambar TTD
+                "" // Tempat TTD digital
             ];
         });
 
-        // --- RENDER TABEL ---
         doc.autoTable({
-            startY: 38,
+            startY: 50,
             head: [['No', 'Nama / NIP', 'Asal Sekolah', 'Tanda Tangan']],
             body: tableBody,
             theme: 'grid',
@@ -582,28 +803,22 @@
                 0: { halign: 'center', cellWidth: 12 },
                 1: { cellWidth: 70 },
                 2: { cellWidth: 50 },
-                3: { cellWidth: 45, minCellHeight: 20 } // Tinggi disesuaikan untuk TTD
+                3: { cellWidth: 45, minCellHeight: 20 }
             },
-            // Hook untuk menggambar gambar Base64 ke dalam cell "Tanda Tangan"
             didDrawCell: function(data) {
                 if (data.column.index === 3 && data.cell.section === 'body') {
                     const rowIndex = data.row.index;
                     const user = globalDataCache[rowIndex];
                     
-                    // Cek jika variabel user ada, ttd tidak kosong, dan berformat string base64 gambar
                     if (user && user.ttd && typeof user.ttd === 'string' && user.ttd.startsWith('data:image')) {
                         try {
-                            // Hitung posisi tengah untuk gambar
                             const imgWidth = 35;
                             const imgHeight = 15;
                             const xPos = data.cell.x + (data.cell.width - imgWidth) / 2;
                             const yPos = data.cell.y + (data.cell.height - imgHeight) / 2;
-                            
-                            // MENAMBAHKAN KOMPRESI 'FAST' PADA GAMBAR
                             doc.addImage(user.ttd, 'PNG', xPos, yPos, imgWidth, imgHeight, 'sig_' + rowIndex, 'FAST');
-                        } catch(e) { console.error("Gagal meload TTD baris " + rowIndex); }
+                        } catch(e) {}
                     } else {
-                        // Jika tidak ada TTD digital, kasih nomor urut titik-titik untuk TTD manual
                         doc.setFontSize(9);
                         doc.text(`${rowIndex + 1}. .........`, data.cell.x + 2, data.cell.y + 8);
                     }
@@ -611,10 +826,8 @@
             }
         });
 
-        // --- FOOTER TANDA TANGAN KETUA ---
-        const finalY = doc.lastAutoTable.finalY || 40;
-        
-        // Cek apakah halaman cukup untuk TTD ketua, jika tidak buat halaman baru
+        // Tanda Tangan Ketua di akhir Tabel
+        const finalY = doc.lastAutoTable.finalY || 50;
         if (finalY > 250) {
             doc.addPage();
             var yPosTtd = 30;
@@ -623,30 +836,23 @@
         }
 
         doc.setFontSize(11);
-        doc.text(`Cihaurbeuti, ${tanggal}`, 140, yPosTtd);
+        doc.text(titimangsa, 140, yPosTtd);
         doc.text("Ketua KKG Kelas 6,", 140, yPosTtd + 6);
         
-        // Memasukkan gambar tanda tangan Ketua jika berhasil dimuat dari URL
         if (ketuaImg) {
             try {
-                // Koordinat disesuaikan agar pas di atas nama, DENGAN KOMPRESI 'FAST'
+                // Menggunakan ID 'ttd_ketua' untuk reuse gambar dan kompresi maksimal (FAST)
                 doc.addImage(ketuaImg, 'PNG', 145, yPosTtd + 8, 30, 20, 'ttd_ketua', 'FAST');
-            } catch (error) {
-                console.error("Gagal melukis TTD Ketua di PDF", error);
-            }
+            } catch (error) {}
         }
 
-        // Nama Ketua
         doc.setFont("helvetica", "bold");
         doc.text("Heris Apriadi", 140, yPosTtd + 30);
-        // Garis bawah nama
-        doc.setLineWidth(0.3);
-        doc.line(140, yPosTtd + 31, 185, yPosTtd + 31);
+        doc.setLineWidth(0.3); doc.line(140, yPosTtd + 31, 185, yPosTtd + 31);
 
-        // Unduh PDF
-        doc.save(`Daftar_Hadir_KKG_${tanggal.replace(/\s+/g, '_')}.pdf`);
+        // Unduh PDF Gabungan
+        doc.save(`Berkas_KKG_${tglPelaksanaan.replace(/\s+/g, '_')}.pdf`);
         
-        // Matikan loader
         toggleLoading(false);
     }
   </script>

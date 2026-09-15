@@ -934,6 +934,25 @@
         
         const agendaArr = agendaTxt.split('\n').filter(item => item.trim() !== '');
 
+        // --- PARSING TANGGAL KE DD/MM/YYYY UNTUK LPT & TANDA TANGAN ---
+        let tglPelaksanaanClean = String(tglPelaksanaan);
+        // Jika format bawaan Google Sheets (ISO 8601: 2026-09-14T17:00:00.000Z)
+        if (tglPelaksanaanClean.includes('T') && tglPelaksanaanClean.includes('Z')) {
+            const d = new Date(tglPelaksanaanClean);
+            if (!isNaN(d)) tglPelaksanaanClean = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        } else {
+            // Jika format teks manual (misal: 15 September 2026)
+            const bulanId = {"januari":"01", "februari":"02", "maret":"03", "april":"04", "mei":"05", "juni":"06", "juli":"07", "agustus":"08", "september":"09", "oktober":"10", "november":"11", "desember":"12"};
+            const parts = tglPelaksanaanClean.toLowerCase().split(' ');
+            if (parts.length >= 3 && bulanId[parts[1]]) {
+                tglPelaksanaanClean = `${String(parseInt(parts[0])).padStart(2, '0')}/${bulanId[parts[1]]}/${parts[2]}`;
+            }
+        }
+
+        // Menyiapkan tanggal untuk tanda tangan menggunakan tanggal yang sudah diformat bersih
+        const kotaTitimangsa = titimangsa.includes(',') ? titimangsa.split(',')[0].trim() : "Cihaurbeuti";
+        const tglTtdPelaksanaan = `${kotaTitimangsa}, ${tglPelaksanaanClean}`;
+
         // Peta Nama Bulan ke Angka untuk penamaan File (Format: 8. Laporan_KKG...)
         const targetMonth = sourceData ? sourceData.bulan : document.getElementById('filterBulan').value;
         const monthMap = {"Januari":1, "Februari":2, "Maret":3, "April":4, "Mei":5, "Juni":6, "Juli":7, "Agustus":8, "September":9, "Oktober":10, "November":11, "Desember":12};
@@ -1039,7 +1058,7 @@
         doc.text("Tujuan", 20, yLPT); doc.text(":", 55, yLPT); 
         const txtTujuan = doc.splitTextToSize("Mengikuti Kegiatan rutin KKG kelas VI Korwil Cihaurbeuti", 130); doc.text(txtTujuan, 60, yLPT); yLPT += (txtTujuan.length * 6) + 4;
         
-        doc.text("Waktu", 20, yLPT); doc.text(":", 55, yLPT); doc.text(`- Berlaku tanggal    : ${tglPelaksanaan}`, 60, yLPT); yLPT += 8; doc.text(`- Kembali tanggal : ${tglPelaksanaan}`, 60, yLPT); yLPT += 10;
+        doc.text("Waktu", 20, yLPT); doc.text(":", 55, yLPT); doc.text(`- Berlaku tanggal    : ${tglPelaksanaanClean}`, 60, yLPT); yLPT += 8; doc.text(`- Kembali tanggal : ${tglPelaksanaanClean}`, 60, yLPT); yLPT += 10;
         
         doc.text("Kesimpulan Pelapor", 20, yLPT); doc.text(":", 55, yLPT);
         doc.text("Susunan acara kegiatan KKG Kelas VI yaitu :", 60, yLPT); yLPT += 8; doc.text("1. Pembukaan", 60, yLPT); yLPT += 8; doc.text("2. Sambutan dari Ketua KKG Kelas VI", 60, yLPT); yLPT += 8;
@@ -1050,7 +1069,7 @@
         if (barcodeImg) { doc.addImage(barcodeImg, 'PNG', 60, yLPT, 30, 30, 'barcode_materi', 'FAST'); yLPT += 35; }
 
         yLPT += 15;
-        doc.text(titimangsa, 140, yLPT); doc.text("Pelapor,", 140, yLPT + 8); doc.text("................................................", 140, yLPT + 35);
+        doc.text(tglTtdPelaksanaan, 140, yLPT); doc.text("Pelapor,", 140, yLPT + 8); doc.text("................................................", 140, yLPT + 35);
 
         // ==========================================
         // HALAMAN 3: DAFTAR HADIR
@@ -1094,7 +1113,7 @@
         const finalY = doc.lastAutoTable.finalY || 50;
         let yPosTtd = finalY > 250 ? (doc.addPage(), 30) : finalY + 20;
 
-        doc.setFontSize(11); doc.text(titimangsa, 140, yPosTtd); doc.text("Ketua KKG Kelas 6,", 140, yPosTtd + 6);
+        doc.setFontSize(11); doc.text(tglTtdPelaksanaan, 140, yPosTtd); doc.text("Ketua KKG Kelas 6,", 140, yPosTtd + 6);
         if (ketuaImg) { try { doc.addImage(ketuaImg, 'PNG', 145, yPosTtd + 8, 30, 20, 'ttd_ketua', 'FAST'); } catch (e) {} }
         doc.setFont("helvetica", "bold"); doc.text("Heris Apriadi", 140, yPosTtd + 30); doc.setLineWidth(0.3); doc.line(140, yPosTtd + 31, 185, yPosTtd + 31);
 
